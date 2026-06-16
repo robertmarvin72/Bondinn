@@ -4,6 +4,8 @@ enum Weather { SUNNY, RAIN, WIND, STORM }
 
 const SHEEP_BUY_PRICE = 25000
 const SHEEP_SELL_PRICE = 20000
+const TRACTOR_PRICE = 2500000
+const TRACTOR_DAILY_COST = 3000
 
 var barn_hay: int = 0
 var barn_capacity: int = 1000
@@ -20,6 +22,7 @@ var hay_shortage_days: int = 0
 
 var money: int = 2500000
 var daily_cost: int = 5000
+var has_tractor: bool = false
 
 var selected_field = null
 
@@ -39,7 +42,15 @@ var selected_field = null
 @onready var lambs_label: Label = $UI/FieldPanel/LambsLabel
 @onready var hay_forecast_label: Label = $UI/FieldPanel/HayForecastLabel
 @onready var fertilize_button: Button = $UI/FieldPanel/FertilizeButton
+@onready var tractor_label: Label = $UI/FieldPanel/TractorLabel
+@onready var buy_tractor_button: Button = $UI/FieldPanel/BuyTractorButton
 @onready var camera: Camera3D = $Camera3D
+
+func has_required_machinery(machine_name: String) -> bool:
+	match machine_name:
+		"spreader", "mower", "tedder", "baler":
+			return has_tractor
+	return true
 
 func _get_effective_hay_rate() -> float:
 	if season == "Vetur":
@@ -99,6 +110,8 @@ func _ready():
 	hay_forecast_label.text = "Hey endast í 0 daga."
 	fertilize_button.pressed.connect(_on_fertilize_pressed)
 	fertilize_button.disabled = true
+	tractor_label.text = "Dráttarvél: Nei"
+	buy_tractor_button.pressed.connect(_on_buy_tractor_pressed)
 	buy_sheep_button.pressed.connect(_on_buy_sheep_pressed)
 	sell_sheep_button.pressed.connect(_on_sell_sheep_pressed)
 	_update_sheep_buttons()
@@ -177,6 +190,8 @@ func _on_next_day_pressed():
 				child.harvested = false
 	var hay_warning = _process_hay_consumption()
 	money -= daily_cost
+	if has_tractor:
+		money -= TRACTOR_DAILY_COST
 	var daily_consumption = sheep_count * _get_effective_hay_rate()
 	var forecast_days: int = int(floor(barn_hay / daily_consumption)) if daily_consumption > 0 else 9999
 	var warnings: Array = []
@@ -222,6 +237,21 @@ func _on_sell_sheep_pressed() -> void:
 	money += 10 * SHEEP_SELL_PRICE
 	sheep_label.text = "Kindur: " + str(sheep_count)
 	money_label.text = "Peningar: " + str(money) + " kr."
+	_update_sheep_buttons()
+
+func _on_buy_tractor_pressed() -> void:
+	if has_tractor:
+		warning_label.text = "Þú átt nú þegar dráttarvél."
+		return
+	if money < TRACTOR_PRICE:
+		warning_label.text = "Ekki nóg peningar til að kaupa dráttarvél."
+		return
+	money -= TRACTOR_PRICE
+	has_tractor = true
+	buy_tractor_button.visible = false
+	tractor_label.text = "Dráttarvél: Já"
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Dráttarvél keypt!"
 	_update_sheep_buttons()
 
 func _on_fertilize_pressed() -> void:
