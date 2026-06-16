@@ -97,7 +97,7 @@ far = 2000.0
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 280.0
-offset_bottom = 320.0
+offset_bottom = 418.0
 
 [node name="FieldInfo" type="Label" parent="UI/FieldPanel" unique_id=606631013]
 layout_mode = 0
@@ -157,10 +157,34 @@ offset_right = 250.0
 offset_bottom = 268.0
 text = "Kindur: 50"
 
-[node name="WarningLabel" type="Label" parent="UI/FieldPanel"]
+[node name="MoneyLabel" type="Label" parent="UI/FieldPanel"]
 layout_mode = 0
 offset_left = 10.0
 offset_top = 271.0
 offset_right = 250.0
-offset_bottom = 311.0
+offset_bottom = 291.0
+text = "Peningar: 2500000 kr."
+
+[node name="WarningLabel" type="Label" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 294.0
+offset_right = 250.0
+offset_bottom = 344.0
 autowrap_mode = 3
+
+[node name="BuySheepButton" type="Button" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 347.0
+offset_right = 250.0
+offset_bottom = 377.0
+text = "Kaupa 10 kindur"
+
+[node name="SellSheepButton" type="Button" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 380.0
+offset_right = 250.0
+offset_bottom = 410.0
+text = "Selja 10 kindur"
