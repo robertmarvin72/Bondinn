@@ -13,6 +13,7 @@ const TEDDER_HAY_BONUS = 0.25
 const BALER_PRICE = 1200000
 const PLASTIC_COST_PER_BALE = 500
 const BALE_SIZE = 100
+const BARN_EXPAND_COST = 1000000
 const FERTILIZER_COST_PER_FIELD = 5000
 const FERTILITY_INCREASE = 10
 
@@ -75,6 +76,7 @@ var selected_field = null
 @onready var bale_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BaleButton
 @onready var wrapped_bales_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/WrappedBalesLabel
 @onready var wrap_bale_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/WrapBaleButton
+@onready var expand_barn_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/ExpandBarnButton
 @onready var hay_quality_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/HayQualityLabel
 @onready var feed_value_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/FeedValueLabel
 @onready var camera: Camera3D = $Camera3D
@@ -88,6 +90,16 @@ func has_required_machinery(machine_name: String) -> bool:
 		"harvest":
 			return has_tractor and has_mower
 	return true
+
+func _store_hay_in_barn(amount: int) -> int:
+	var space: int = barn_capacity - barn_hay
+	var stored: int = min(amount, space)
+	if stored <= 0:
+		return amount
+	hay_quality = calculate_hay_quality(barn_hay, hay_quality, stored, harvest_quality)
+	barn_hay += stored
+	feed_value = barn_hay * hay_quality
+	return amount - stored
 
 func _wrap_bale() -> void:
 	wrapped_bale_quality = calculate_hay_quality(wrapped_bales, wrapped_bale_quality, 1, harvest_quality)
@@ -156,7 +168,7 @@ func _weather_name() -> String:
 func _ready():
 	harvest_button.pressed.connect(_on_harvest_pressed)
 	harvest_button.disabled = true
-	hay_label.text = "Hey í hlöðu: 0 / " + str(barn_capacity)
+	hay_label.text = "Hlaða: 0 / " + str(barn_capacity) + " hey"
 	next_day_button.pressed.connect(_on_next_day_pressed)
 	day_label.text = "Dagur: " + str(day_count)
 	weather_label.text = "Veður: " + _weather_name()
@@ -186,6 +198,7 @@ func _ready():
 	feed_value_label.text = "Fóðurvirði: " + str(int(feed_value))
 	wrapped_bales_label.text = "Votheysrúllur: " + str(wrapped_bales)
 	wrap_bale_button.pressed.connect(_on_wrap_bale_pressed)
+	expand_barn_button.pressed.connect(_on_expand_barn_pressed)
 	buy_sheep_button.pressed.connect(_on_buy_sheep_pressed)
 	sell_sheep_button.pressed.connect(_on_sell_sheep_pressed)
 	_update_sheep_buttons()
@@ -287,7 +300,7 @@ func _on_next_day_pressed():
 	warning_label.text = "\n".join(warnings)
 	day_label.text = "Dagur: " + str(day_count)
 	weather_label.text = "Veður: " + _weather_name()
-	hay_label.text = "Hey í hlöðu: " + str(barn_hay) + " / " + str(barn_capacity)
+	hay_label.text = "Hlaða: " + str(barn_hay) + " / " + str(barn_capacity) + " hey"
 	hay_quality_label.text = "Heygæði: " + str(int(round(hay_quality * 100))) + "%"
 	feed_value_label.text = "Fóðurvirði: " + str(int(feed_value))
 	wrapped_bales_label.text = "Votheysrúllur: " + str(wrapped_bales)
@@ -365,16 +378,26 @@ func _on_bale_pressed() -> void:
 	if loose_hay == 0:
 		warning_label.text = "Ekkert laustt hey til að rúlla."
 		return
-	var amount = min(loose_hay, barn_capacity - barn_hay)
-	hay_quality = calculate_hay_quality(barn_hay, hay_quality, amount, harvest_quality)
-	barn_hay += amount
-	loose_hay = 0
-	feed_value = barn_hay * hay_quality
-	hay_label.text = "Hey í hlöðu: " + str(barn_hay) + " / " + str(barn_capacity)
+	var remainder = _store_hay_in_barn(loose_hay)
+	loose_hay = remainder
+	hay_label.text = "Hlaða: " + str(barn_hay) + " / " + str(barn_capacity) + " hey"
 	loose_hay_label.text = "Ópressað hey: " + str(loose_hay)
 	hay_quality_label.text = "Heygæði: " + str(int(round(hay_quality * 100))) + "%"
 	feed_value_label.text = "Fóðurvirði: " + str(int(feed_value))
-	warning_label.text = ""
+	if remainder > 0:
+		warning_label.text = "Hlaðan er full. Ekki allt hey komst inn."
+	else:
+		warning_label.text = ""
+
+func _on_expand_barn_pressed() -> void:
+	if money < BARN_EXPAND_COST:
+		warning_label.text = "Ekki nóg peningar til að stækka hlöðu."
+		return
+	money -= BARN_EXPAND_COST
+	barn_capacity += 500
+	hay_label.text = "Hlaða: " + str(barn_hay) + " / " + str(barn_capacity) + " hey"
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Hlaðan var stækkuð."
 
 func _on_wrap_bale_pressed() -> void:
 	if not has_baler:
@@ -467,4 +490,4 @@ func _update_panel():
 	field_info.text = selected_field.get_field_info()
 	harvest_button.disabled = selected_field.harvested or current_weather == Weather.STORM or season == "Vetur"
 	fertilize_button.disabled = not has_fertilizer_spreader or selected_field.fertilized_this_year or season == "Haust" or season == "Vetur"
-	hay_label.text = "Hey í hlöðu: " + str(barn_hay) + " / " + str(barn_capacity)
+	hay_label.text = "Hlaða: " + str(barn_hay) + " / " + str(barn_capacity) + " hey"

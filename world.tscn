@@ -156,7 +156,12 @@ text = "Búskapur"
 [node name="HayLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Hey: 0 / 1000"
+text = "Hlaða: 0 / 1000 hey"
+
+[node name="ExpandBarnButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Stækka hlöðu (1.000.000 kr.)"
 
 [node name="HayQualityLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
 layout_mode = 2
