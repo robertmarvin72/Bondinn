@@ -158,6 +158,16 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Hey: 0 / 1000"
 
+[node name="HayQualityLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Heygæði: 100%"
+
+[node name="FeedValueLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Fóðurvirði: 0"
+
 [node name="HayForecastLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
