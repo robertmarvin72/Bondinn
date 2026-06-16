@@ -250,6 +250,46 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Kaupa dráttarvél (2.500.000 kr.)"
 
+[node name="MowerLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Sláttuvél: Nei"
+
+[node name="BuyMowerButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Kaupa sláttuvél (750.000 kr.)"
+
+[node name="TedderLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Snúningsvél: Nei"
+
+[node name="BuyTedderButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Kaupa snúningsvél (600.000 kr.)"
+
+[node name="BalerLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Rúlluvél: Nei"
+
+[node name="BuyBalerButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Kaupa rúlluvél (1.200.000 kr.)"
+
+[node name="LooseHayLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Ópressað hey: 0"
+
+[node name="BaleButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Rúlla hey"
+
 [node name="SpreaderLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3

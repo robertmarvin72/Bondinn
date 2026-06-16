@@ -7,6 +7,10 @@ const SHEEP_SELL_PRICE = 20000
 const TRACTOR_PRICE = 2500000
 const TRACTOR_DAILY_COST = 3000
 const FERTILIZER_SPREADER_PRICE = 500000
+const MOWER_PRICE = 750000
+const TEDDER_PRICE = 600000
+const TEDDER_HAY_BONUS = 0.25
+const BALER_PRICE = 1200000
 const FERTILIZER_COST_PER_FIELD = 5000
 const FERTILITY_INCREASE = 10
 
@@ -27,6 +31,10 @@ var money: int = 2500000
 var daily_cost: int = 5000
 var has_tractor: bool = false
 var has_fertilizer_spreader: bool = false
+var has_mower: bool = false
+var has_tedder: bool = false
+var has_baler: bool = false
+var loose_hay: int = 0
 
 var selected_field = null
 
@@ -50,12 +58,24 @@ var selected_field = null
 @onready var buy_tractor_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuyTractorButton
 @onready var spreader_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/SpreaderLabel
 @onready var buy_spreader_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuySpreaderButton
+@onready var mower_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/MowerLabel
+@onready var buy_mower_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuyMowerButton
+@onready var tedder_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/TedderLabel
+@onready var buy_tedder_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuyTedderButton
+@onready var baler_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/BalerLabel
+@onready var buy_baler_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuyBalerButton
+@onready var loose_hay_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/LooseHayLabel
+@onready var bale_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BaleButton
 @onready var camera: Camera3D = $Camera3D
 
 func has_required_machinery(machine_name: String) -> bool:
 	match machine_name:
-		"spreader", "mower", "tedder", "baler":
+		"spreader", "mower", "tedder":
 			return has_tractor
+		"baler":
+			return has_tractor and has_tedder
+		"harvest":
+			return has_tractor and has_mower
 	return true
 
 func _get_effective_hay_rate() -> float:
@@ -120,6 +140,15 @@ func _ready():
 	buy_tractor_button.pressed.connect(_on_buy_tractor_pressed)
 	spreader_label.text = "Áburðardreifari: Nei"
 	buy_spreader_button.pressed.connect(_on_buy_spreader_pressed)
+	mower_label.text = "Sláttuvél: Nei"
+	buy_mower_button.pressed.connect(_on_buy_mower_pressed)
+	tedder_label.text = "Snúningsvél: Nei"
+	buy_tedder_button.pressed.connect(_on_buy_tedder_pressed)
+	baler_label.text = "Rúlluvél: Nei"
+	buy_baler_button.pressed.connect(_on_buy_baler_pressed)
+	loose_hay_label.text = "Ópressað hey: 0"
+	bale_button.disabled = true
+	bale_button.pressed.connect(_on_bale_pressed)
 	buy_sheep_button.pressed.connect(_on_buy_sheep_pressed)
 	sell_sheep_button.pressed.connect(_on_sell_sheep_pressed)
 	_update_sheep_buttons()
@@ -157,11 +186,17 @@ func _unhandled_input(event):
 func _on_harvest_pressed():
 	if selected_field == null:
 		return
+	if not has_required_machinery("harvest"):
+		warning_label.text = "Þú þarft sláttuvél til að slá tún."
+		return
 	var hay = selected_field.harvest()
+	if has_tedder:
+		hay = int(hay * (1.0 + TEDDER_HAY_BONUS))
 	match current_weather:
 		Weather.SUNNY: hay = int(hay * 1.1)
 		Weather.RAIN:  hay = int(hay * 0.7)
-	barn_hay = min(barn_hay + hay, barn_capacity)
+	loose_hay += hay
+	loose_hay_label.text = "Ópressað hey: " + str(loose_hay)
 	_update_panel()
 
 func _on_next_day_pressed():
@@ -281,6 +316,75 @@ func _on_buy_spreader_pressed() -> void:
 	_update_sheep_buttons()
 	if selected_field != null:
 		_update_panel()
+
+func _on_bale_pressed() -> void:
+	if not has_baler:
+		warning_label.text = "Þú þarft rúlluvél til að rúlla hey."
+		return
+	if loose_hay == 0:
+		warning_label.text = "Ekkert laustt hey til að rúlla."
+		return
+	var amount = min(loose_hay, barn_capacity - barn_hay)
+	barn_hay += amount
+	loose_hay = 0
+	hay_label.text = "Hey í hlöðu: " + str(barn_hay) + " / " + str(barn_capacity)
+	loose_hay_label.text = "Ópressað hey: " + str(loose_hay)
+	warning_label.text = ""
+
+func _on_buy_baler_pressed() -> void:
+	if not has_tractor:
+		warning_label.text = "Þú þarft dráttarvél áður en þú getur keypt rúlluvél."
+		return
+	if not has_tedder:
+		warning_label.text = "Þú þarft snúningsvél áður en þú getur keypt rúlluvél."
+		return
+	if has_baler:
+		warning_label.text = "Þú átt nú þegar rúlluvél."
+		return
+	if money < BALER_PRICE:
+		warning_label.text = "Ekki nóg peningar til að kaupa rúlluvél."
+		return
+	money -= BALER_PRICE
+	has_baler = true
+	buy_baler_button.visible = false
+	baler_label.text = "Rúlluvél: Já"
+	bale_button.disabled = false
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Rúlluvél keypt!"
+
+func _on_buy_tedder_pressed() -> void:
+	if not has_tractor:
+		warning_label.text = "Þú þarft dráttarvél áður en þú getur keypt snúningsvél."
+		return
+	if has_tedder:
+		warning_label.text = "Þú átt nú þegar snúningsvél."
+		return
+	if money < TEDDER_PRICE:
+		warning_label.text = "Ekki nóg peningar til að kaupa snúningsvél."
+		return
+	money -= TEDDER_PRICE
+	has_tedder = true
+	buy_tedder_button.visible = false
+	tedder_label.text = "Snúningsvél: Já"
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Snúningsvél keypt!"
+
+func _on_buy_mower_pressed() -> void:
+	if not has_tractor:
+		warning_label.text = "Þú þarft dráttarvél áður en þú getur keypt sláttuvél."
+		return
+	if has_mower:
+		warning_label.text = "Þú átt nú þegar sláttuvél."
+		return
+	if money < MOWER_PRICE:
+		warning_label.text = "Ekki nóg peningar til að kaupa sláttuvél."
+		return
+	money -= MOWER_PRICE
+	has_mower = true
+	buy_mower_button.visible = false
+	mower_label.text = "Sláttuvél: Já"
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Sláttuvél keypt!"
 
 func _on_fertilize_pressed() -> void:
 	if selected_field == null:
