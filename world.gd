@@ -7,6 +7,9 @@ var barn_capacity: int = 1000
 var day_count: int = 1
 var current_weather: Weather = Weather.SUNNY
 
+var sheep_count: int = 50
+var hay_per_sheep_per_day: float = 0.2
+
 var selected_field = null
 
 @onready var field_info: Label = $UI/FieldPanel/FieldInfo
@@ -15,6 +18,8 @@ var selected_field = null
 @onready var day_label: Label = $UI/FieldPanel/DayLabel
 @onready var weather_label: Label = $UI/FieldPanel/WeatherLabel
 @onready var next_day_button: Button = $UI/FieldPanel/NextDayButton
+@onready var sheep_label: Label = $UI/FieldPanel/SheepLabel
+@onready var warning_label: Label = $UI/FieldPanel/WarningLabel
 @onready var camera: Camera3D = $Camera3D
 
 func _weather_name() -> String:
@@ -28,10 +33,12 @@ func _weather_name() -> String:
 func _ready():
 	harvest_button.pressed.connect(_on_harvest_pressed)
 	harvest_button.disabled = true
-	hay_label.text = "Hey: 0 / " + str(barn_capacity)
+	hay_label.text = "Hey í hlöðu: 0 / " + str(barn_capacity)
 	next_day_button.pressed.connect(_on_next_day_pressed)
 	day_label.text = "Dagur: " + str(day_count)
 	weather_label.text = "Veður: " + _weather_name()
+	sheep_label.text = "Kindur: " + str(sheep_count)
+	warning_label.text = ""
 
 func _unhandled_input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -83,12 +90,20 @@ func _on_next_day_pressed():
 			child.grass_level = min(child.grass_level + growth, 100)
 			if child.harvested and child.grass_level > 30:
 				child.harvested = false
+	var consumed: int = int(sheep_count * hay_per_sheep_per_day)
+	if barn_hay < consumed:
+		barn_hay = 0
+		warning_label.text = "Viðvörun: Ekki nóg hey fyrir kindurnar!"
+	else:
+		barn_hay -= consumed
+		warning_label.text = ""
 	day_label.text = "Dagur: " + str(day_count)
 	weather_label.text = "Veður: " + _weather_name()
+	hay_label.text = "Hey í hlöðu: " + str(barn_hay) + " / " + str(barn_capacity)
 	if selected_field != null:
 		_update_panel()
 
 func _update_panel():
 	field_info.text = selected_field.get_field_info()
 	harvest_button.disabled = selected_field.harvested or current_weather == Weather.STORM
-	hay_label.text = "Hey: " + str(barn_hay) + " / " + str(barn_capacity)
+	hay_label.text = "Hey í hlöðu: " + str(barn_hay) + " / " + str(barn_capacity)
