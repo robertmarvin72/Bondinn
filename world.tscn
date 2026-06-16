@@ -1,0 +1,150 @@
+[gd_scene format=3 uid="uid://dh5o8fsufe6w6"]
+
+[ext_resource type="Script" uid="uid://dqrdmlg1eri7u" path="res://field-sudur_tun.gd" id="1_036b0"]
+[ext_resource type="Script" uid="uid://cc4b8ba0bcsy5" path="res://field-nyrda_tun.gd" id="1_aqk2v"]
+[ext_resource type="Script" uid="uid://djmc56h072twr" path="res://world.gd" id="1_dwbse"]
+[ext_resource type="Script" uid="uid://eraeegehx2gr" path="res://field.gd" id="1_f3sb7"]
+[ext_resource type="Script" uid="uid://co0vy7nbyi6en" path="res://field-myrin.gd" id="1_fj7yv"]
+[ext_resource type="Script" uid="uid://d3ivkqlj2h8e5" path="res://field-holar.gd" id="1_tlwt5"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gv5m4"]
+albedo_color = Color(0.37254903, 0.47058824, 0.33333334, 1)
+roughness = 0.9
+use_z_clip_scale = true
+use_fov_override = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_f3sb7"]
+material = SubResource("StandardMaterial3D_gv5m4")
+size = Vector3(10, 0.5, 10)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_f3sb7"]
+albedo_color = Color(0.29411766, 0.25490198, 0.21568628, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_field"]
+size = Vector3(10, 0.5, 10)
+
+[sub_resource type="BoxMesh" id="BoxMesh_gv5m4"]
+material = SubResource("StandardMaterial3D_f3sb7")
+size = Vector3(100, 0.2, 100)
+
+[node name="World" type="Node3D" unique_id=1801759413]
+script = ExtResource("1_dwbse")
+
+[node name="SudurTun" type="MeshInstance3D" parent="." unique_id=1655309045]
+transform = Transform3D(3, 0, 0, 0, 1, 0, 0, 0, 3, 20, 1, -35)
+mesh = SubResource("BoxMesh_f3sb7")
+script = ExtResource("1_036b0")
+
+[node name="StaticBody3D5" type="StaticBody3D" parent="SudurTun" unique_id=2052091300]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="SudurTun/StaticBody3D5" unique_id=1901070400]
+shape = SubResource("BoxShape3D_field")
+
+[node name="NyrdaTun" type="MeshInstance3D" parent="." unique_id=1069290288]
+transform = Transform3D(3, 0, 0, 0, 1, 0, 0, 0, 3, 0, 1, 35)
+mesh = SubResource("BoxMesh_f3sb7")
+script = ExtResource("1_aqk2v")
+
+[node name="StaticBody3D4" type="StaticBody3D" parent="NyrdaTun" unique_id=1061241562]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="NyrdaTun/StaticBody3D4" unique_id=1556906282]
+shape = SubResource("BoxShape3D_field")
+
+[node name="Holar" type="MeshInstance3D" parent="." unique_id=1170367163]
+transform = Transform3D(3, 0, 0, 0, 1, 0, 0, 0, 3, -35, 1, 0)
+mesh = SubResource("BoxMesh_f3sb7")
+script = ExtResource("1_tlwt5")
+
+[node name="StaticBody3D3" type="StaticBody3D" parent="Holar" unique_id=1209482798]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Holar/StaticBody3D3" unique_id=971550463]
+shape = SubResource("BoxShape3D_field")
+
+[node name="Myrin" type="MeshInstance3D" parent="." unique_id=1204088867]
+transform = Transform3D(3, 0, 0, 0, 1, 0, 0, 0, 3, 35, 1, 0)
+mesh = SubResource("BoxMesh_f3sb7")
+script = ExtResource("1_fj7yv")
+
+[node name="StaticBody3D2" type="StaticBody3D" parent="Myrin" unique_id=537604147]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Myrin/StaticBody3D2" unique_id=97479380]
+shape = SubResource("BoxShape3D_field")
+
+[node name="Heimatun" type="MeshInstance3D" parent="." unique_id=618908163]
+transform = Transform3D(3, 0, 0, 0, 1, 0, 0, 0, 3, 0, 1, 0)
+mesh = SubResource("BoxMesh_f3sb7")
+script = ExtResource("1_f3sb7")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="Heimatun" unique_id=585937237]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Heimatun/StaticBody3D" unique_id=2071462441]
+shape = SubResource("BoxShape3D_field")
+
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=2131162769]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.007029295, 0.04110539, -0.021748066)
+mesh = SubResource("BoxMesh_gv5m4")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1756918319]
+transform = Transform3D(-0.9878665, 0.15222684, -0.030768823, -0.15215304, -0.98834556, -0.0047390717, -0.031131642, 0, 0.9995153, -4.551504, 17.023922, -7.135769)
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=128224296]
+transform = Transform3D(1, 0, 0, 0, 0.57357645, 0.81915206, 0, -0.81915206, 0.57357645, 0, 40, 35)
+far = 2000.0
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1911149296]
+
+[node name="FieldPanel" type="Panel" parent="UI" unique_id=1408354496]
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 280.0
+offset_bottom = 275.0
+
+[node name="FieldInfo" type="Label" parent="UI/FieldPanel" unique_id=606631013]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 250.0
+offset_bottom = 85.0
+text = "Heimatún
+Gras: 100%
+Frjósemi: 75%"
+
+[node name="HarvestButton" type="Button" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 93.0
+offset_right = 250.0
+offset_bottom = 123.0
+text = "Slá tún"
+
+[node name="HayLabel" type="Label" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 132.0
+offset_right = 250.0
+offset_bottom = 152.0
+text = "Hey: 0 / 1000"
+
+[node name="DayLabel" type="Label" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 160.0
+offset_right = 250.0
+offset_bottom = 180.0
+text = "Dagur: 1"
+
+[node name="WeatherLabel" type="Label" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 183.0
+offset_right = 250.0
+offset_bottom = 203.0
+text = "Veður: Sólskin"
+
+[node name="NextDayButton" type="Button" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 211.0
+offset_right = 250.0
+offset_bottom = 241.0
+text = "Næsti dagur"
