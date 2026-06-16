@@ -178,6 +178,16 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Peningar: 2500000 kr."
 
+[node name="WrappedBalesLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Votheysrúllur: 0"
+
+[node name="WrapBaleButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Pakka rúllum"
+
 [node name="SepTime" type="HSeparator" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3

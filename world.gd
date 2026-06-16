@@ -11,6 +11,8 @@ const MOWER_PRICE = 750000
 const TEDDER_PRICE = 600000
 const TEDDER_HAY_BONUS = 0.25
 const BALER_PRICE = 1200000
+const PLASTIC_COST_PER_BALE = 500
+const BALE_SIZE = 100
 const FERTILIZER_COST_PER_FIELD = 5000
 const FERTILITY_INCREASE = 10
 
@@ -38,6 +40,8 @@ var has_mower: bool = false
 var has_tedder: bool = false
 var has_baler: bool = false
 var loose_hay: int = 0
+var wrapped_bales: int = 0
+var wrapped_bale_quality: float = 1.0
 
 var selected_field = null
 
@@ -69,6 +73,8 @@ var selected_field = null
 @onready var buy_baler_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuyBalerButton
 @onready var loose_hay_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/LooseHayLabel
 @onready var bale_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BaleButton
+@onready var wrapped_bales_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/WrappedBalesLabel
+@onready var wrap_bale_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/WrapBaleButton
 @onready var hay_quality_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/HayQualityLabel
 @onready var feed_value_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/FeedValueLabel
 @onready var camera: Camera3D = $Camera3D
@@ -83,6 +89,12 @@ func has_required_machinery(machine_name: String) -> bool:
 			return has_tractor and has_mower
 	return true
 
+func _wrap_bale() -> void:
+	wrapped_bale_quality = calculate_hay_quality(wrapped_bales, wrapped_bale_quality, 1, harvest_quality)
+	loose_hay -= BALE_SIZE
+	wrapped_bales += 1
+	money -= PLASTIC_COST_PER_BALE
+
 func calculate_hay_quality(old_hay: int, old_quality: float, new_hay: int, new_quality: float) -> float:
 	if old_hay + new_hay == 0:
 		return 1.0
@@ -95,15 +107,26 @@ func _get_effective_hay_rate() -> float:
 
 func _process_hay_consumption() -> String:
 	var consumed: float = sheep_count * _get_effective_hay_rate()
-	if feed_value <= consumed:
-		feed_value = 0.0
-		barn_hay = 0
-		hay_shortage_days += 1
-		return "Viðvörun: Heyið er búið!"
-	feed_value -= consumed
-	barn_hay = int(feed_value / hay_quality) if hay_quality > 0.0 else 0
-	hay_shortage_days = 0
-	return ""
+	if feed_value >= consumed:
+		feed_value -= consumed
+		barn_hay = int(feed_value / hay_quality) if hay_quality > 0.0 else 0
+		hay_shortage_days = 0
+		return ""
+	var remaining: float = consumed - feed_value
+	feed_value = 0.0
+	barn_hay = 0
+	if wrapped_bales > 0:
+		var feed_per_bale: float = BALE_SIZE * wrapped_bale_quality
+		var bales_needed: int = int(ceil(remaining / feed_per_bale)) if feed_per_bale > 0.0 else wrapped_bales + 1
+		if bales_needed >= wrapped_bales:
+			wrapped_bales = 0
+			hay_shortage_days += 1
+			return "Viðvörun: Heyið er búið!"
+		wrapped_bales -= bales_needed
+		hay_shortage_days = 0
+		return ""
+	hay_shortage_days += 1
+	return "Viðvörun: Heyið er búið!"
 
 func _run_lambing() -> int:
 	var lambs = 0
@@ -161,6 +184,8 @@ func _ready():
 	bale_button.pressed.connect(_on_bale_pressed)
 	hay_quality_label.text = "Heygæði: " + str(int(round(hay_quality * 100))) + "%"
 	feed_value_label.text = "Fóðurvirði: " + str(int(feed_value))
+	wrapped_bales_label.text = "Votheysrúllur: " + str(wrapped_bales)
+	wrap_bale_button.pressed.connect(_on_wrap_bale_pressed)
 	buy_sheep_button.pressed.connect(_on_buy_sheep_pressed)
 	sell_sheep_button.pressed.connect(_on_sell_sheep_pressed)
 	_update_sheep_buttons()
@@ -265,6 +290,7 @@ func _on_next_day_pressed():
 	hay_label.text = "Hey í hlöðu: " + str(barn_hay) + " / " + str(barn_capacity)
 	hay_quality_label.text = "Heygæði: " + str(int(round(hay_quality * 100))) + "%"
 	feed_value_label.text = "Fóðurvirði: " + str(int(feed_value))
+	wrapped_bales_label.text = "Votheysrúllur: " + str(wrapped_bales)
 	hay_forecast_label.text = "Hey endast í " + str(forecast_days) + " daga."
 	money_label.text = "Peningar: " + str(money) + " kr."
 	sheep_label.text = "Kindur: " + str(sheep_count)
@@ -349,6 +375,22 @@ func _on_bale_pressed() -> void:
 	hay_quality_label.text = "Heygæði: " + str(int(round(hay_quality * 100))) + "%"
 	feed_value_label.text = "Fóðurvirði: " + str(int(feed_value))
 	warning_label.text = ""
+
+func _on_wrap_bale_pressed() -> void:
+	if not has_baler:
+		warning_label.text = "Þú þarft rúlluvél til að pakka rúllum."
+		return
+	if loose_hay < BALE_SIZE:
+		warning_label.text = "Ekki nóg hey til að pakka rúllu."
+		return
+	if money < PLASTIC_COST_PER_BALE:
+		warning_label.text = "Ekki nóg peningar fyrir plast."
+		return
+	_wrap_bale()
+	loose_hay_label.text = "Ópressað hey: " + str(loose_hay)
+	wrapped_bales_label.text = "Votheysrúllur: " + str(wrapped_bales)
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Rúlla var pökkð í plast."
 
 func _on_buy_baler_pressed() -> void:
 	if not has_tractor:
