@@ -6,6 +6,9 @@ const SHEEP_BUY_PRICE = 25000
 const SHEEP_SELL_PRICE = 20000
 const TRACTOR_PRICE = 2500000
 const TRACTOR_DAILY_COST = 3000
+const FERTILIZER_SPREADER_PRICE = 500000
+const FERTILIZER_COST_PER_FIELD = 5000
+const FERTILITY_INCREASE = 10
 
 var barn_hay: int = 0
 var barn_capacity: int = 1000
@@ -23,27 +26,30 @@ var hay_shortage_days: int = 0
 var money: int = 2500000
 var daily_cost: int = 5000
 var has_tractor: bool = false
+var has_fertilizer_spreader: bool = false
 
 var selected_field = null
 
-@onready var field_info: Label = $UI/FieldPanel/FieldInfo
-@onready var harvest_button: Button = $UI/FieldPanel/HarvestButton
-@onready var hay_label: Label = $UI/FieldPanel/HayLabel
-@onready var day_label: Label = $UI/FieldPanel/DayLabel
-@onready var weather_label: Label = $UI/FieldPanel/WeatherLabel
-@onready var next_day_button: Button = $UI/FieldPanel/NextDayButton
-@onready var sheep_label: Label = $UI/FieldPanel/SheepLabel
-@onready var money_label: Label = $UI/FieldPanel/MoneyLabel
-@onready var warning_label: Label = $UI/FieldPanel/WarningLabel
-@onready var buy_sheep_button: Button = $UI/FieldPanel/BuySheepButton
-@onready var sell_sheep_button: Button = $UI/FieldPanel/SellSheepButton
-@onready var year_label: Label = $UI/FieldPanel/YearLabel
-@onready var season_label: Label = $UI/FieldPanel/SeasonLabel
-@onready var lambs_label: Label = $UI/FieldPanel/LambsLabel
-@onready var hay_forecast_label: Label = $UI/FieldPanel/HayForecastLabel
-@onready var fertilize_button: Button = $UI/FieldPanel/FertilizeButton
-@onready var tractor_label: Label = $UI/FieldPanel/TractorLabel
-@onready var buy_tractor_button: Button = $UI/FieldPanel/BuyTractorButton
+@onready var field_info: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/FieldInfo
+@onready var harvest_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/HarvestButton
+@onready var hay_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/HayLabel
+@onready var day_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/DayLabel
+@onready var weather_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/WeatherLabel
+@onready var next_day_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/NextDayButton
+@onready var sheep_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/SheepLabel
+@onready var money_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/MoneyLabel
+@onready var warning_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/WarningLabel
+@onready var buy_sheep_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuySheepButton
+@onready var sell_sheep_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/SellSheepButton
+@onready var year_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/YearLabel
+@onready var season_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/SeasonLabel
+@onready var lambs_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/LambsLabel
+@onready var hay_forecast_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/HayForecastLabel
+@onready var fertilize_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/FertilizeButton
+@onready var tractor_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/TractorLabel
+@onready var buy_tractor_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuyTractorButton
+@onready var spreader_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/SpreaderLabel
+@onready var buy_spreader_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuySpreaderButton
 @onready var camera: Camera3D = $Camera3D
 
 func has_required_machinery(machine_name: String) -> bool:
@@ -112,6 +118,8 @@ func _ready():
 	fertilize_button.disabled = true
 	tractor_label.text = "Dráttarvél: Nei"
 	buy_tractor_button.pressed.connect(_on_buy_tractor_pressed)
+	spreader_label.text = "Áburðardreifari: Nei"
+	buy_spreader_button.pressed.connect(_on_buy_spreader_pressed)
 	buy_sheep_button.pressed.connect(_on_buy_sheep_pressed)
 	sell_sheep_button.pressed.connect(_on_sell_sheep_pressed)
 	_update_sheep_buttons()
@@ -254,8 +262,31 @@ func _on_buy_tractor_pressed() -> void:
 	warning_label.text = "Dráttarvél keypt!"
 	_update_sheep_buttons()
 
+func _on_buy_spreader_pressed() -> void:
+	if not has_tractor:
+		warning_label.text = "Þú þarft dráttarvél áður en þú getur keypt áburðardreifara."
+		return
+	if has_fertilizer_spreader:
+		warning_label.text = "Þú átt nú þegar áburðardreifara."
+		return
+	if money < FERTILIZER_SPREADER_PRICE:
+		warning_label.text = "Ekki nóg peningar til að kaupa áburðardreifara."
+		return
+	money -= FERTILIZER_SPREADER_PRICE
+	has_fertilizer_spreader = true
+	buy_spreader_button.visible = false
+	spreader_label.text = "Áburðardreifari: Já"
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Áburðardreifari keyptur!"
+	_update_sheep_buttons()
+	if selected_field != null:
+		_update_panel()
+
 func _on_fertilize_pressed() -> void:
 	if selected_field == null:
+		return
+	if not has_fertilizer_spreader:
+		warning_label.text = "Þú þarft áburðardreifara til að bera á tún."
 		return
 	if season == "Haust" or season == "Vetur":
 		warning_label.text = "Ekki er hægt að bera á á þessum árstíma."
@@ -263,12 +294,12 @@ func _on_fertilize_pressed() -> void:
 	if not selected_field.fertilize():
 		warning_label.text = "Þetta tún hefur þegar verið borið á í ár."
 		return
-	money -= 5000
+	money -= FERTILIZER_COST_PER_FIELD
 	money_label.text = "Peningar: " + str(money) + " kr."
 	_update_panel()
 
 func _update_panel():
 	field_info.text = selected_field.get_field_info()
 	harvest_button.disabled = selected_field.harvested or current_weather == Weather.STORM or season == "Vetur"
-	fertilize_button.disabled = selected_field.fertilized_this_year or season == "Haust" or season == "Vetur"
+	fertilize_button.disabled = not has_fertilizer_spreader or selected_field.fertilized_this_year or season == "Haust" or season == "Vetur"
 	hay_label.text = "Hey í hlöðu: " + str(barn_hay) + " / " + str(barn_capacity)

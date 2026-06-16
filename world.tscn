@@ -96,151 +96,166 @@ far = 2000.0
 [node name="FieldPanel" type="Panel" parent="UI" unique_id=1408354496]
 offset_left = 20.0
 offset_top = 20.0
-offset_right = 280.0
-offset_bottom = 599.0
+offset_right = 350.0
+offset_bottom = 580.0
 
-[node name="FieldInfo" type="Label" parent="UI/FieldPanel" unique_id=606631013]
+[node name="ScrollContainer" type="ScrollContainer" parent="UI/FieldPanel"]
 layout_mode = 0
-offset_left = 10.0
-offset_top = 10.0
-offset_right = 250.0
-offset_bottom = 85.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 330.0
+offset_bottom = 560.0
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UI/FieldPanel/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="WarningLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+custom_minimum_size = Vector2(0, 64)
+
+[node name="SepTun" type="HSeparator" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HeaderTun" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Tún"
+
+[node name="FieldInfo" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer" unique_id=606631013]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Heimatún
 Gras: 100%
 Frjósemi: 75%"
 
-[node name="HarvestButton" type="Button" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 93.0
-offset_right = 250.0
-offset_bottom = 123.0
+[node name="HarvestButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Slá tún"
 
-[node name="HayLabel" type="Label" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 132.0
-offset_right = 250.0
-offset_bottom = 152.0
-text = "Hey: 0 / 1000"
-
-[node name="DayLabel" type="Label" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 160.0
-offset_right = 250.0
-offset_bottom = 180.0
-text = "Dagur: 1"
-
-[node name="WeatherLabel" type="Label" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 183.0
-offset_right = 250.0
-offset_bottom = 203.0
-text = "Veður: Sólskin"
-
-[node name="NextDayButton" type="Button" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 211.0
-offset_right = 250.0
-offset_bottom = 241.0
-text = "Næsti dagur"
-
-[node name="SheepLabel" type="Label" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 248.0
-offset_right = 250.0
-offset_bottom = 268.0
-text = "Kindur: 50"
-
-[node name="MoneyLabel" type="Label" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 271.0
-offset_right = 250.0
-offset_bottom = 291.0
-text = "Peningar: 2500000 kr."
-
-[node name="WarningLabel" type="Label" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 294.0
-offset_right = 250.0
-offset_bottom = 344.0
-autowrap_mode = 3
-
-[node name="BuySheepButton" type="Button" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 347.0
-offset_right = 250.0
-offset_bottom = 377.0
-text = "Kaupa 10 kindur"
-
-[node name="SellSheepButton" type="Button" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 380.0
-offset_right = 250.0
-offset_bottom = 410.0
-text = "Selja 10 kindur"
-
-[node name="YearLabel" type="Label" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 413.0
-offset_right = 250.0
-offset_bottom = 433.0
-text = "Ár: 1"
-
-[node name="SeasonLabel" type="Label" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 436.0
-offset_right = 250.0
-offset_bottom = 456.0
-text = "Árstíð: Vor"
-
-[node name="LambsLabel" type="Label" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 459.0
-offset_right = 250.0
-offset_bottom = 479.0
-text = "Lömb fædd í ár: 0"
-
-[node name="HayForecastLabel" type="Label" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 482.0
-offset_right = 250.0
-offset_bottom = 502.0
-text = "Hey endast í 0 daga."
-
-[node name="FertilizeButton" type="Button" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 505.0
-offset_right = 250.0
-offset_bottom = 535.0
+[node name="FertilizeButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Bera á"
 
-[node name="TractorLabel" type="Label" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 538.0
-offset_right = 250.0
-offset_bottom = 558.0
+[node name="SepFarm" type="HSeparator" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HeaderFarm" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Búskapur"
+
+[node name="HayLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Hey: 0 / 1000"
+
+[node name="HayForecastLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Hey endast í 0 daga."
+
+[node name="MoneyLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Peningar: 2500000 kr."
+
+[node name="SepTime" type="HSeparator" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HeaderTime" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Tími og Veður"
+
+[node name="YearLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Ár: 1"
+
+[node name="SeasonLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Árstíð: Vor"
+
+[node name="DayLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Dagur: 1"
+
+[node name="WeatherLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Veður: Sólskin"
+
+[node name="NextDayButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Næsti dagur"
+
+[node name="SepAnimals" type="HSeparator" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HeaderAnimals" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Kindur"
+
+[node name="SheepLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Kindur: 50"
+
+[node name="LambsLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Lömb fædd í ár: 0"
+
+[node name="BuySheepButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Kaupa 10 kindur"
+
+[node name="SellSheepButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Selja 10 kindur"
+
+[node name="SepMachinery" type="HSeparator" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HeaderMachinery" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Vélar"
+
+[node name="TractorLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Dráttarvél: Nei"
 
-[node name="BuyTractorButton" type="Button" parent="UI/FieldPanel"]
-layout_mode = 0
-offset_left = 10.0
-offset_top = 561.0
-offset_right = 250.0
-offset_bottom = 591.0
+[node name="BuyTractorButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
 text = "Kaupa dráttarvél (2.500.000 kr.)"
+
+[node name="SpreaderLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Áburðardreifari: Nei"
+
+[node name="BuySpreaderButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Kaupa áburðardreifara (500.000 kr.)"
