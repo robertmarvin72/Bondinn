@@ -97,7 +97,7 @@ far = 2000.0
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 280.0
-offset_bottom = 418.0
+offset_bottom = 510.0
 
 [node name="FieldInfo" type="Label" parent="UI/FieldPanel" unique_id=606631013]
 layout_mode = 0
@@ -188,3 +188,35 @@ offset_top = 380.0
 offset_right = 250.0
 offset_bottom = 410.0
 text = "Selja 10 kindur"
+
+[node name="YearLabel" type="Label" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 413.0
+offset_right = 250.0
+offset_bottom = 433.0
+text = "Ár: 1"
+
+[node name="SeasonLabel" type="Label" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 436.0
+offset_right = 250.0
+offset_bottom = 456.0
+text = "Árstíð: Vor"
+
+[node name="LambsLabel" type="Label" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 459.0
+offset_right = 250.0
+offset_bottom = 479.0
+text = "Lömb fædd í ár: 0"
+
+[node name="HayForecastLabel" type="Label" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 482.0
+offset_right = 250.0
+offset_bottom = 502.0
+text = "Hey endast í 0 daga."

@@ -8,10 +8,15 @@ const SHEEP_SELL_PRICE = 20000
 var barn_hay: int = 0
 var barn_capacity: int = 1000
 var day_count: int = 1
+var year: int = 1
+var season: String = "Vor"
 var current_weather: Weather = Weather.SUNNY
 
 var sheep_count: int = 50
 var hay_per_sheep_per_day: float = 0.2
+var lambing_completed: bool = false
+var lambs_born_this_year: int = 0
+var hay_shortage_days: int = 0
 
 var money: int = 2500000
 var daily_cost: int = 5000
@@ -29,7 +34,45 @@ var selected_field = null
 @onready var warning_label: Label = $UI/FieldPanel/WarningLabel
 @onready var buy_sheep_button: Button = $UI/FieldPanel/BuySheepButton
 @onready var sell_sheep_button: Button = $UI/FieldPanel/SellSheepButton
+@onready var year_label: Label = $UI/FieldPanel/YearLabel
+@onready var season_label: Label = $UI/FieldPanel/SeasonLabel
+@onready var lambs_label: Label = $UI/FieldPanel/LambsLabel
+@onready var hay_forecast_label: Label = $UI/FieldPanel/HayForecastLabel
 @onready var camera: Camera3D = $Camera3D
+
+func _get_effective_hay_rate() -> float:
+	if season == "Vetur":
+		return hay_per_sheep_per_day * 1.5
+	return hay_per_sheep_per_day
+
+func _process_hay_consumption() -> String:
+	var consumed: int = int(sheep_count * _get_effective_hay_rate())
+	if barn_hay < consumed:
+		barn_hay = 0
+	else:
+		barn_hay -= consumed
+	if barn_hay == 0 and consumed > 0:
+		hay_shortage_days += 1
+		return "Viðvörun: Heyið er búið!"
+	hay_shortage_days = 0
+	return ""
+
+func _run_lambing() -> int:
+	var lambs = 0
+	for i in range(sheep_count):
+		if randf() < 0.3:
+			lambs += 1
+	return lambs
+
+func _get_season() -> String:
+	if day_count <= 22:
+		return "Vor"
+	elif day_count <= 45:
+		return "Sumar"
+	elif day_count <= 68:
+		return "Haust"
+	else:
+		return "Vetur"
 
 func _weather_name() -> String:
 	match current_weather:
@@ -49,6 +92,10 @@ func _ready():
 	sheep_label.text = "Kindur: " + str(sheep_count)
 	money_label.text = "Peningar: " + str(money) + " kr."
 	warning_label.text = ""
+	year_label.text = "Ár: " + str(year)
+	season_label.text = "Árstíð: " + season
+	lambs_label.text = "Lömb fædd í ár: " + str(lambs_born_this_year)
+	hay_forecast_label.text = "Hey endast í 0 daga."
 	buy_sheep_button.pressed.connect(_on_buy_sheep_pressed)
 	sell_sheep_button.pressed.connect(_on_sell_sheep_pressed)
 	_update_sheep_buttons()
@@ -94,31 +141,55 @@ func _on_harvest_pressed():
 func _on_next_day_pressed():
 	current_weather = randi() % 4 as Weather
 	day_count += 1
+	if day_count > 90:
+		day_count = 1
+		year += 1
+		lambing_completed = false
+		lambs_born_this_year = 0
+	season = _get_season()
+	var lambing_message: String = ""
+	if day_count == 1 and not lambing_completed:
+		var lambs = _run_lambing()
+		sheep_count += lambs
+		lambs_born_this_year = lambs
+		lambing_completed = true
+		lambing_message = "Sauðburður: " + str(lambs) + " lömb fæddust."
 	var growth = 5
 	match current_weather:
 		Weather.RAIN:  growth += 3
 		Weather.STORM: growth -= 2
+	if season == "Sumar":
+		growth += 3
+	elif season == "Vetur":
+		growth = 0
 	for child in get_children():
 		if child.has_method("get_field_info"):
 			child.grass_level = min(child.grass_level + growth, 100)
 			if child.harvested and child.grass_level > 30:
 				child.harvested = false
-	var consumed: int = int(sheep_count * hay_per_sheep_per_day)
-	if barn_hay < consumed:
-		barn_hay = 0
-	else:
-		barn_hay -= consumed
+	var hay_warning = _process_hay_consumption()
 	money -= daily_cost
+	var daily_consumption = sheep_count * _get_effective_hay_rate()
+	var forecast_days: int = int(floor(barn_hay / daily_consumption)) if daily_consumption > 0 else 9999
 	var warnings: Array = []
-	if barn_hay == 0 and consumed > 0:
-		warnings.append("Viðvörun: Ekki nóg hey fyrir kindurnar!")
+	if lambing_message != "":
+		warnings.append(lambing_message)
+	if season == "Vetur":
+		warnings.append("Ekki hægt að slá tún á veturna.")
+	if hay_warning != "":
+		warnings.append(hay_warning)
 	if money < 0:
 		warnings.append("Viðvörun: Búið er í skuld!")
 	warning_label.text = "\n".join(warnings)
 	day_label.text = "Dagur: " + str(day_count)
 	weather_label.text = "Veður: " + _weather_name()
 	hay_label.text = "Hey í hlöðu: " + str(barn_hay) + " / " + str(barn_capacity)
+	hay_forecast_label.text = "Hey endast í " + str(forecast_days) + " daga."
 	money_label.text = "Peningar: " + str(money) + " kr."
+	sheep_label.text = "Kindur: " + str(sheep_count)
+	year_label.text = "Ár: " + str(year)
+	season_label.text = "Árstíð: " + season
+	lambs_label.text = "Lömb fædd í ár: " + str(lambs_born_this_year)
 	_update_sheep_buttons()
 	if selected_field != null:
 		_update_panel()
@@ -147,5 +218,5 @@ func _on_sell_sheep_pressed() -> void:
 
 func _update_panel():
 	field_info.text = selected_field.get_field_info()
-	harvest_button.disabled = selected_field.harvested or current_weather == Weather.STORM
+	harvest_button.disabled = selected_field.harvested or current_weather == Weather.STORM or season == "Vetur"
 	hay_label.text = "Hey í hlöðu: " + str(barn_hay) + " / " + str(barn_capacity)
