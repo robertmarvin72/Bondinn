@@ -38,6 +38,7 @@ var selected_field = null
 @onready var season_label: Label = $UI/FieldPanel/SeasonLabel
 @onready var lambs_label: Label = $UI/FieldPanel/LambsLabel
 @onready var hay_forecast_label: Label = $UI/FieldPanel/HayForecastLabel
+@onready var fertilize_button: Button = $UI/FieldPanel/FertilizeButton
 @onready var camera: Camera3D = $Camera3D
 
 func _get_effective_hay_rate() -> float:
@@ -96,6 +97,8 @@ func _ready():
 	season_label.text = "Árstíð: " + season
 	lambs_label.text = "Lömb fædd í ár: " + str(lambs_born_this_year)
 	hay_forecast_label.text = "Hey endast í 0 daga."
+	fertilize_button.pressed.connect(_on_fertilize_pressed)
+	fertilize_button.disabled = true
 	buy_sheep_button.pressed.connect(_on_buy_sheep_pressed)
 	sell_sheep_button.pressed.connect(_on_sell_sheep_pressed)
 	_update_sheep_buttons()
@@ -112,6 +115,7 @@ func _unhandled_input(event):
 			field_info.text = "Ekkert tún valið"
 			selected_field = null
 			harvest_button.disabled = true
+			fertilize_button.disabled = true
 			return
 
 		var clicked = result.collider
@@ -123,6 +127,7 @@ func _unhandled_input(event):
 			field_info.text = "Engin tún gögn fundust"
 			selected_field = null
 			harvest_button.disabled = true
+			fertilize_button.disabled = true
 			return
 
 		selected_field = field
@@ -146,6 +151,9 @@ func _on_next_day_pressed():
 		year += 1
 		lambing_completed = false
 		lambs_born_this_year = 0
+		for child in get_children():
+			if child.has_method("get_field_info"):
+				child.fertilized_this_year = false
 	season = _get_season()
 	var lambing_message: String = ""
 	if day_count == 1 and not lambing_completed:
@@ -216,7 +224,21 @@ func _on_sell_sheep_pressed() -> void:
 	money_label.text = "Peningar: " + str(money) + " kr."
 	_update_sheep_buttons()
 
+func _on_fertilize_pressed() -> void:
+	if selected_field == null:
+		return
+	if season == "Haust" or season == "Vetur":
+		warning_label.text = "Ekki er hægt að bera á á þessum árstíma."
+		return
+	if not selected_field.fertilize():
+		warning_label.text = "Þetta tún hefur þegar verið borið á í ár."
+		return
+	money -= 5000
+	money_label.text = "Peningar: " + str(money) + " kr."
+	_update_panel()
+
 func _update_panel():
 	field_info.text = selected_field.get_field_info()
 	harvest_button.disabled = selected_field.harvested or current_weather == Weather.STORM or season == "Vetur"
+	fertilize_button.disabled = selected_field.fertilized_this_year or season == "Haust" or season == "Vetur"
 	hay_label.text = "Hey í hlöðu: " + str(barn_hay) + " / " + str(barn_capacity)

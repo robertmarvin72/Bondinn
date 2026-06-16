@@ -97,7 +97,7 @@ far = 2000.0
 offset_left = 20.0
 offset_top = 20.0
 offset_right = 280.0
-offset_bottom = 510.0
+offset_bottom = 543.0
 
 [node name="FieldInfo" type="Label" parent="UI/FieldPanel" unique_id=606631013]
 layout_mode = 0
@@ -220,3 +220,11 @@ offset_top = 482.0
 offset_right = 250.0
 offset_bottom = 502.0
 text = "Hey endast í 0 daga."
+
+[node name="FertilizeButton" type="Button" parent="UI/FieldPanel"]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 505.0
+offset_right = 250.0
+offset_bottom = 535.0
+text = "Bera á"
