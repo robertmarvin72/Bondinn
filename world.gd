@@ -19,6 +19,9 @@ const FERTILITY_INCREASE = 10
 const COW_BARN_PRICE = 5000000
 const COW_BARN_CAPACITY = 20
 const COW_BARN_DAILY_COST = 10000
+const COW_PRICE = 350000
+const COW_SELL_PRICE = 250000
+const HAY_PER_COW_PER_DAY = 2.0
 
 var barn_hay: int = 0
 var barn_capacity: int = 1000
@@ -50,6 +53,7 @@ var baler_condition: float = 1.0
 var spreader_condition: float = 1.0
 var has_cow_barn: bool = false
 var cow_capacity: int = 0
+var cow_count: int = 0
 var loose_hay: int = 0
 var wrapped_bales: int = 0
 var wrapped_bale_quality: float = 1.0
@@ -97,6 +101,9 @@ var selected_field = null
 @onready var cow_barn_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/CowBarnLabel
 @onready var buy_cow_barn_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuyCowBarnButton
 @onready var cow_capacity_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/CowCapacityLabel
+@onready var cow_count_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/CowCountLabel
+@onready var buy_cow_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuyCowButton
+@onready var sell_cow_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/SellCowButton
 @onready var camera: Camera3D = $Camera3D
 
 func has_required_machinery(machine_name: String) -> bool:
@@ -179,7 +186,7 @@ func _get_effective_hay_rate() -> float:
 	return hay_per_sheep_per_day
 
 func _process_hay_consumption() -> String:
-	var consumed: float = sheep_count * _get_effective_hay_rate()
+	var consumed: float = sheep_count * _get_effective_hay_rate() + cow_count * HAY_PER_COW_PER_DAY
 	if feed_value >= consumed:
 		feed_value -= consumed
 		barn_hay = int(feed_value / hay_quality) if hay_quality > 0.0 else 0
@@ -194,12 +201,12 @@ func _process_hay_consumption() -> String:
 		if bales_needed >= wrapped_bales:
 			wrapped_bales = 0
 			hay_shortage_days += 1
-			return "Viðvörun: Heyið er búið!"
+			return "Viðvörun: Ekki nóg hey fyrir dýrin!"
 		wrapped_bales -= bales_needed
 		hay_shortage_days = 0
 		return ""
 	hay_shortage_days += 1
-	return "Viðvörun: Heyið er búið!"
+	return "Viðvörun: Ekki nóg hey fyrir dýrin!"
 
 func _run_lambing() -> int:
 	var lambs = 0
@@ -272,10 +279,14 @@ func _ready():
 	repair_spreader_button.pressed.connect(_on_repair_spreader_pressed)
 	cow_barn_label.text = "Fjós: Nei"
 	buy_cow_barn_button.pressed.connect(_on_buy_cow_barn_pressed)
+	cow_count_label.text = "Kýr: 0"
 	cow_capacity_label.visible = false
+	buy_cow_button.pressed.connect(_on_buy_cow_pressed)
+	sell_cow_button.pressed.connect(_on_sell_cow_pressed)
 	buy_sheep_button.pressed.connect(_on_buy_sheep_pressed)
 	sell_sheep_button.pressed.connect(_on_sell_sheep_pressed)
 	_update_sheep_buttons()
+	_update_cow_buttons()
 
 func _unhandled_input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -379,7 +390,7 @@ func _on_next_day_pressed():
 		money -= TRACTOR_DAILY_COST
 	if has_cow_barn:
 		money -= COW_BARN_DAILY_COST
-	var daily_consumption = sheep_count * _get_effective_hay_rate()
+	var daily_consumption = sheep_count * _get_effective_hay_rate() + cow_count * HAY_PER_COW_PER_DAY
 	var forecast_days: int = int(floor(feed_value / daily_consumption)) if daily_consumption > 0 else 9999
 	var warnings: Array = []
 	if lambing_message != "":
@@ -415,10 +426,14 @@ func _on_next_day_pressed():
 	hay_forecast_label.text = "Hey endast í " + str(forecast_days) + " daga."
 	money_label.text = "Peningar: " + str(money) + " kr."
 	sheep_label.text = "Kindur: " + str(sheep_count)
+	cow_count_label.text = "Kýr: " + str(cow_count)
+	if has_cow_barn:
+		cow_capacity_label.text = "Kúapláss: " + str(cow_count) + " / " + str(cow_capacity)
 	year_label.text = "Ár: " + str(year)
 	season_label.text = "Árstíð: " + season
 	lambs_label.text = "Lömb fædd í ár: " + str(lambs_born_this_year)
 	_update_sheep_buttons()
+	_update_cow_buttons()
 	if selected_field != null:
 		_update_panel()
 
@@ -691,7 +706,42 @@ func _on_buy_cow_barn_pressed() -> void:
 	cow_capacity = COW_BARN_CAPACITY
 	buy_cow_barn_button.visible = false
 	cow_barn_label.text = "Fjós: Já"
-	cow_capacity_label.text = "Kúapláss: 0 / " + str(cow_capacity)
+	cow_capacity_label.text = "Kúapláss: " + str(cow_count) + " / " + str(cow_capacity)
 	cow_capacity_label.visible = true
 	money_label.text = "Peningar: " + str(money) + " kr."
 	warning_label.text = "Fjós byggt."
+	_update_cow_buttons()
+
+func _update_cow_buttons() -> void:
+	buy_cow_button.disabled = not has_cow_barn or cow_count >= cow_capacity or money < COW_PRICE
+	sell_cow_button.disabled = cow_count <= 0
+
+func _on_buy_cow_pressed() -> void:
+	if not has_cow_barn:
+		warning_label.text = "Þú þarft fjós áður en þú getur keypt kýr."
+		return
+	if cow_count >= cow_capacity:
+		warning_label.text = "Fjósið er fullt."
+		return
+	if money < COW_PRICE:
+		warning_label.text = "Ekki nóg peningar til að kaupa kú."
+		return
+	money -= COW_PRICE
+	cow_count += 1
+	cow_count_label.text = "Kýr: " + str(cow_count)
+	cow_capacity_label.text = "Kúapláss: " + str(cow_count) + " / " + str(cow_capacity)
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Kýr keypt."
+	_update_cow_buttons()
+
+func _on_sell_cow_pressed() -> void:
+	if cow_count <= 0:
+		warning_label.text = "Þú átt engar kýr til að selja."
+		return
+	cow_count -= 1
+	money += COW_SELL_PRICE
+	cow_count_label.text = "Kýr: " + str(cow_count)
+	cow_capacity_label.text = "Kúapláss: " + str(cow_count) + " / " + str(cow_capacity)
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Kýr seld."
+	_update_cow_buttons()
