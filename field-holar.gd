@@ -6,10 +6,10 @@ extends MeshInstance3D
 @export var harvested: bool = false
 @export var fertilized_this_year: bool = false
 
-func fertilize() -> bool:
+func fertilize(amount: int = 10) -> bool:
 	if fertilized_this_year:
 		return false
-	fertility = min(fertility + 10, 100)
+	fertility = min(fertility + amount, 100)
 	fertilized_this_year = true
 	return true
 

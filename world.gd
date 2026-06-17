@@ -16,6 +16,9 @@ const BALE_SIZE = 100
 const BARN_EXPAND_COST = 1000000
 const FERTILIZER_COST_PER_FIELD = 5000
 const FERTILITY_INCREASE = 10
+const COW_BARN_PRICE = 5000000
+const COW_BARN_CAPACITY = 20
+const COW_BARN_DAILY_COST = 10000
 
 var barn_hay: int = 0
 var barn_capacity: int = 1000
@@ -40,6 +43,13 @@ var has_fertilizer_spreader: bool = false
 var has_mower: bool = false
 var has_tedder: bool = false
 var has_baler: bool = false
+var tractor_condition: float = 1.0
+var mower_condition: float = 1.0
+var tedder_condition: float = 1.0
+var baler_condition: float = 1.0
+var spreader_condition: float = 1.0
+var has_cow_barn: bool = false
+var cow_capacity: int = 0
 var loose_hay: int = 0
 var wrapped_bales: int = 0
 var wrapped_bale_quality: float = 1.0
@@ -77,8 +87,16 @@ var selected_field = null
 @onready var wrapped_bales_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/WrappedBalesLabel
 @onready var wrap_bale_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/WrapBaleButton
 @onready var expand_barn_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/ExpandBarnButton
+@onready var repair_tractor_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/RepairTractorButton
+@onready var repair_mower_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/RepairMowerButton
+@onready var repair_tedder_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/RepairTedderButton
+@onready var repair_baler_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/RepairBalerButton
+@onready var repair_spreader_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/RepairSpreaderButton
 @onready var hay_quality_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/HayQualityLabel
 @onready var feed_value_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/FeedValueLabel
+@onready var cow_barn_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/CowBarnLabel
+@onready var buy_cow_barn_button: Button = $UI/FieldPanel/ScrollContainer/VBoxContainer/BuyCowBarnButton
+@onready var cow_capacity_label: Label = $UI/FieldPanel/ScrollContainer/VBoxContainer/CowCapacityLabel
 @onready var camera: Camera3D = $Camera3D
 
 func has_required_machinery(machine_name: String) -> bool:
@@ -111,6 +129,49 @@ func calculate_hay_quality(old_hay: int, old_quality: float, new_hay: int, new_q
 	if old_hay + new_hay == 0:
 		return 1.0
 	return (old_hay * old_quality + new_hay * new_quality) / float(old_hay + new_hay)
+
+func _condition_text(condition: float) -> String:
+	if condition <= 0.0:
+		return "💀"
+	elif condition < 0.5:
+		return str(int(round(condition * 100))) + "% ⚠️"
+	else:
+		return str(int(round(condition * 100))) + "%"
+
+func apply_wear(machine: String, amount: float) -> void:
+	match machine:
+		"tractor": tractor_condition = max(0.0, tractor_condition - amount)
+		"mower": mower_condition = max(0.0, mower_condition - amount)
+		"tedder": tedder_condition = max(0.0, tedder_condition - amount)
+		"baler": baler_condition = max(0.0, baler_condition - amount)
+		"spreader": spreader_condition = max(0.0, spreader_condition - amount)
+
+func _update_condition_labels() -> void:
+	if has_tractor:
+		tractor_label.text = "Dráttarvél: " + _condition_text(tractor_condition)
+		var cost = int((1.0 - tractor_condition) * 500000)
+		repair_tractor_button.text = "Gera við dráttarvél (" + str(cost) + " kr.)"
+		repair_tractor_button.visible = tractor_condition < 1.0
+	if has_mower:
+		mower_label.text = "Sláttuvél: " + _condition_text(mower_condition)
+		var cost = int((1.0 - mower_condition) * 500000)
+		repair_mower_button.text = "Gera við sláttuvél (" + str(cost) + " kr.)"
+		repair_mower_button.visible = mower_condition < 1.0
+	if has_tedder:
+		tedder_label.text = "Snúningsvél: " + _condition_text(tedder_condition)
+		var cost = int((1.0 - tedder_condition) * 500000)
+		repair_tedder_button.text = "Gera við snúningsvél (" + str(cost) + " kr.)"
+		repair_tedder_button.visible = tedder_condition < 1.0
+	if has_baler:
+		baler_label.text = "Rúlluvél: " + _condition_text(baler_condition)
+		var cost = int((1.0 - baler_condition) * 500000)
+		repair_baler_button.text = "Gera við rúlluvél (" + str(cost) + " kr.)"
+		repair_baler_button.visible = baler_condition < 1.0
+	if has_fertilizer_spreader:
+		spreader_label.text = "Áburðardreifari: " + _condition_text(spreader_condition)
+		var cost = int((1.0 - spreader_condition) * 500000)
+		repair_spreader_button.text = "Gera við áburðardreifara (" + str(cost) + " kr.)"
+		repair_spreader_button.visible = spreader_condition < 1.0
 
 func _get_effective_hay_rate() -> float:
 	if season == "Vetur":
@@ -199,6 +260,19 @@ func _ready():
 	wrapped_bales_label.text = "Votheysrúllur: " + str(wrapped_bales)
 	wrap_bale_button.pressed.connect(_on_wrap_bale_pressed)
 	expand_barn_button.pressed.connect(_on_expand_barn_pressed)
+	repair_tractor_button.visible = false
+	repair_tractor_button.pressed.connect(_on_repair_tractor_pressed)
+	repair_mower_button.visible = false
+	repair_mower_button.pressed.connect(_on_repair_mower_pressed)
+	repair_tedder_button.visible = false
+	repair_tedder_button.pressed.connect(_on_repair_tedder_pressed)
+	repair_baler_button.visible = false
+	repair_baler_button.pressed.connect(_on_repair_baler_pressed)
+	repair_spreader_button.visible = false
+	repair_spreader_button.pressed.connect(_on_repair_spreader_pressed)
+	cow_barn_label.text = "Fjós: Nei"
+	buy_cow_barn_button.pressed.connect(_on_buy_cow_barn_pressed)
+	cow_capacity_label.visible = false
 	buy_sheep_button.pressed.connect(_on_buy_sheep_pressed)
 	sell_sheep_button.pressed.connect(_on_sell_sheep_pressed)
 	_update_sheep_buttons()
@@ -239,15 +313,32 @@ func _on_harvest_pressed():
 	if not has_required_machinery("harvest"):
 		warning_label.text = "Þú þarft sláttuvél til að slá tún."
 		return
+	if tractor_condition <= 0.0:
+		warning_label.text = "Dráttarvél er biluð. Gerðu við hana."
+		return
+	if mower_condition <= 0.0:
+		warning_label.text = "Sláttuvél er biluð. Gerðu við hana."
+		return
 	var hay = selected_field.harvest()
-	if has_tedder:
-		hay = int(hay * (1.0 + TEDDER_HAY_BONUS))
+	if mower_condition < 0.2:
+		hay = int(hay * 0.75)
+	if has_tedder and tedder_condition > 0.0:
+		var bonus = TEDDER_HAY_BONUS
+		if tedder_condition < 0.2:
+			bonus *= 0.75
+		hay = int(hay * (1.0 + bonus))
 	match current_weather:
 		Weather.SUNNY: hay = int(hay * 1.1)
 		Weather.RAIN:  hay = int(hay * 0.7)
 	harvest_quality = 1.1 if current_weather == Weather.SUNNY else (0.7 if current_weather == Weather.RAIN else 1.0)
 	loose_hay += hay
 	loose_hay_label.text = "Ópressað hey: " + str(loose_hay)
+	apply_wear("tractor", 0.005)
+	apply_wear("mower", 0.01)
+	if has_tedder and tedder_condition > 0.0:
+		apply_wear("tractor", 0.003)
+		apply_wear("tedder", 0.008)
+	_update_condition_labels()
 	_update_panel()
 
 func _on_next_day_pressed():
@@ -286,6 +377,8 @@ func _on_next_day_pressed():
 	money -= daily_cost
 	if has_tractor:
 		money -= TRACTOR_DAILY_COST
+	if has_cow_barn:
+		money -= COW_BARN_DAILY_COST
 	var daily_consumption = sheep_count * _get_effective_hay_rate()
 	var forecast_days: int = int(floor(feed_value / daily_consumption)) if daily_consumption > 0 else 9999
 	var warnings: Array = []
@@ -297,6 +390,21 @@ func _on_next_day_pressed():
 		warnings.append(hay_warning)
 	if money < 0:
 		warnings.append("Viðvörun: Búið er í skuld!")
+	if has_tractor:
+		if tractor_condition <= 0.0: warnings.append("Dráttarvél er biluð. Gerðu við hana.")
+		elif tractor_condition < 0.5: warnings.append("Viðvörun: Dráttarvél þarf viðhald.")
+	if has_mower:
+		if mower_condition <= 0.0: warnings.append("Sláttuvél er biluð. Gerðu við hana.")
+		elif mower_condition < 0.5: warnings.append("Viðvörun: Sláttuvél þarf viðhald.")
+	if has_tedder:
+		if tedder_condition <= 0.0: warnings.append("Snúningsvél er biluð. Gerðu við hana.")
+		elif tedder_condition < 0.5: warnings.append("Viðvörun: Snúningsvél þarf viðhald.")
+	if has_baler:
+		if baler_condition <= 0.0: warnings.append("Rúlluvél er biluð. Gerðu við hana.")
+		elif baler_condition < 0.5: warnings.append("Viðvörun: Rúlluvél þarf viðhald.")
+	if has_fertilizer_spreader:
+		if spreader_condition <= 0.0: warnings.append("Áburðardreifari er bilaður. Gerðu við hann.")
+		elif spreader_condition < 0.5: warnings.append("Viðvörun: Áburðardreifari þarf viðhald.")
 	warning_label.text = "\n".join(warnings)
 	day_label.text = "Dagur: " + str(day_count)
 	weather_label.text = "Veður: " + _weather_name()
@@ -346,7 +454,7 @@ func _on_buy_tractor_pressed() -> void:
 	money -= TRACTOR_PRICE
 	has_tractor = true
 	buy_tractor_button.visible = false
-	tractor_label.text = "Dráttarvél: Já"
+	_update_condition_labels()
 	money_label.text = "Peningar: " + str(money) + " kr."
 	warning_label.text = "Dráttarvél keypt!"
 	_update_sheep_buttons()
@@ -364,7 +472,7 @@ func _on_buy_spreader_pressed() -> void:
 	money -= FERTILIZER_SPREADER_PRICE
 	has_fertilizer_spreader = true
 	buy_spreader_button.visible = false
-	spreader_label.text = "Áburðardreifari: Já"
+	_update_condition_labels()
 	money_label.text = "Peningar: " + str(money) + " kr."
 	warning_label.text = "Áburðardreifari keyptur!"
 	_update_sheep_buttons()
@@ -378,12 +486,24 @@ func _on_bale_pressed() -> void:
 	if loose_hay == 0:
 		warning_label.text = "Ekkert laustt hey til að rúlla."
 		return
-	var remainder = _store_hay_in_barn(loose_hay)
+	if tractor_condition <= 0.0:
+		warning_label.text = "Dráttarvél er biluð. Gerðu við hana."
+		return
+	if baler_condition <= 0.0:
+		warning_label.text = "Rúlluvél er biluð. Gerðu við hana."
+		return
+	var effective_amount = loose_hay
+	if baler_condition < 0.2:
+		effective_amount = int(loose_hay * 0.75)
+	var remainder = _store_hay_in_barn(effective_amount)
 	loose_hay = remainder
+	apply_wear("tractor", 0.004)
+	apply_wear("baler", 0.012)
 	hay_label.text = "Hlaða: " + str(barn_hay) + " / " + str(barn_capacity) + " hey"
 	loose_hay_label.text = "Ópressað hey: " + str(loose_hay)
 	hay_quality_label.text = "Heygæði: " + str(int(round(hay_quality * 100))) + "%"
 	feed_value_label.text = "Fóðurvirði: " + str(int(feed_value))
+	_update_condition_labels()
 	if remainder > 0:
 		warning_label.text = "Hlaðan er full. Ekki allt hey komst inn."
 	else:
@@ -431,8 +551,8 @@ func _on_buy_baler_pressed() -> void:
 	money -= BALER_PRICE
 	has_baler = true
 	buy_baler_button.visible = false
-	baler_label.text = "Rúlluvél: Já"
 	bale_button.disabled = false
+	_update_condition_labels()
 	money_label.text = "Peningar: " + str(money) + " kr."
 	warning_label.text = "Rúlluvél keypt!"
 
@@ -449,7 +569,7 @@ func _on_buy_tedder_pressed() -> void:
 	money -= TEDDER_PRICE
 	has_tedder = true
 	buy_tedder_button.visible = false
-	tedder_label.text = "Snúningsvél: Já"
+	_update_condition_labels()
 	money_label.text = "Peningar: " + str(money) + " kr."
 	warning_label.text = "Snúningsvél keypt!"
 
@@ -466,7 +586,7 @@ func _on_buy_mower_pressed() -> void:
 	money -= MOWER_PRICE
 	has_mower = true
 	buy_mower_button.visible = false
-	mower_label.text = "Sláttuvél: Já"
+	_update_condition_labels()
 	money_label.text = "Peningar: " + str(money) + " kr."
 	warning_label.text = "Sláttuvél keypt!"
 
@@ -479,11 +599,23 @@ func _on_fertilize_pressed() -> void:
 	if season == "Haust" or season == "Vetur":
 		warning_label.text = "Ekki er hægt að bera á á þessum árstíma."
 		return
-	if not selected_field.fertilize():
+	if tractor_condition <= 0.0:
+		warning_label.text = "Dráttarvél er biluð. Gerðu við hana."
+		return
+	if spreader_condition <= 0.0:
+		warning_label.text = "Áburðardreifari er bilaður. Gerðu við hann."
+		return
+	var fertility_gain = FERTILITY_INCREASE
+	if spreader_condition < 0.2:
+		fertility_gain = int(FERTILITY_INCREASE * 0.75)
+	if not selected_field.fertilize(fertility_gain):
 		warning_label.text = "Þetta tún hefur þegar verið borið á í ár."
 		return
 	money -= FERTILIZER_COST_PER_FIELD
 	money_label.text = "Peningar: " + str(money) + " kr."
+	apply_wear("tractor", 0.002)
+	apply_wear("spreader", 0.006)
+	_update_condition_labels()
 	_update_panel()
 
 func _update_panel():
@@ -491,3 +623,75 @@ func _update_panel():
 	harvest_button.disabled = selected_field.harvested or current_weather == Weather.STORM or season == "Vetur"
 	fertilize_button.disabled = not has_fertilizer_spreader or selected_field.fertilized_this_year or season == "Haust" or season == "Vetur"
 	hay_label.text = "Hlaða: " + str(barn_hay) + " / " + str(barn_capacity) + " hey"
+
+func _on_repair_tractor_pressed() -> void:
+	var cost = int((1.0 - tractor_condition) * 500000)
+	if money < cost:
+		warning_label.text = "Ekki nóg peningar til að gera við dráttarvél."
+		return
+	money -= cost
+	tractor_condition = 1.0
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Dráttarvél gerð við."
+	_update_condition_labels()
+
+func _on_repair_mower_pressed() -> void:
+	var cost = int((1.0 - mower_condition) * 500000)
+	if money < cost:
+		warning_label.text = "Ekki nóg peningar til að gera við sláttuvél."
+		return
+	money -= cost
+	mower_condition = 1.0
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Sláttuvél gerð við."
+	_update_condition_labels()
+
+func _on_repair_tedder_pressed() -> void:
+	var cost = int((1.0 - tedder_condition) * 500000)
+	if money < cost:
+		warning_label.text = "Ekki nóg peningar til að gera við snúningsvél."
+		return
+	money -= cost
+	tedder_condition = 1.0
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Snúningsvél gerð við."
+	_update_condition_labels()
+
+func _on_repair_baler_pressed() -> void:
+	var cost = int((1.0 - baler_condition) * 500000)
+	if money < cost:
+		warning_label.text = "Ekki nóg peningar til að gera við rúlluvél."
+		return
+	money -= cost
+	baler_condition = 1.0
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Rúlluvél gerð við."
+	_update_condition_labels()
+
+func _on_repair_spreader_pressed() -> void:
+	var cost = int((1.0 - spreader_condition) * 500000)
+	if money < cost:
+		warning_label.text = "Ekki nóg peningar til að gera við áburðardreifara."
+		return
+	money -= cost
+	spreader_condition = 1.0
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Áburðardreifari gerður við."
+	_update_condition_labels()
+
+func _on_buy_cow_barn_pressed() -> void:
+	if has_cow_barn:
+		warning_label.text = "Þú ert nú þegar með fjós."
+		return
+	if money < COW_BARN_PRICE:
+		warning_label.text = "Ekki nóg peningar til að byggja fjós."
+		return
+	money -= COW_BARN_PRICE
+	has_cow_barn = true
+	cow_capacity = COW_BARN_CAPACITY
+	buy_cow_barn_button.visible = false
+	cow_barn_label.text = "Fjós: Já"
+	cow_capacity_label.text = "Kúapláss: 0 / " + str(cow_capacity)
+	cow_capacity_label.visible = true
+	money_label.text = "Peningar: " + str(money) + " kr."
+	warning_label.text = "Fjós byggt."

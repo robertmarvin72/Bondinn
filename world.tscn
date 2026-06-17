@@ -275,6 +275,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Kaupa dráttarvél (2.500.000 kr.)"
 
+[node name="RepairTractorButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Gera við dráttarvél"
+
 [node name="MowerLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -284,6 +289,11 @@ text = "Sláttuvél: Nei"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Kaupa sláttuvél (750.000 kr.)"
+
+[node name="RepairMowerButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Gera við sláttuvél"
 
 [node name="TedderLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -295,6 +305,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Kaupa snúningsvél (600.000 kr.)"
 
+[node name="RepairTedderButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Gera við snúningsvél"
+
 [node name="BalerLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -304,6 +319,11 @@ text = "Rúlluvél: Nei"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Kaupa rúlluvél (1.200.000 kr.)"
+
+[node name="RepairBalerButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Gera við rúlluvél"
 
 [node name="LooseHayLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
 layout_mode = 2
@@ -324,3 +344,32 @@ text = "Áburðardreifari: Nei"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Kaupa áburðardreifara (500.000 kr.)"
+
+[node name="RepairSpreaderButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Gera við áburðardreifara"
+
+[node name="SepBuildings" type="HSeparator" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HeaderBuildings" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Byggingar"
+
+[node name="CowBarnLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Fjós: Nei"
+
+[node name="BuyCowBarnButton" type="Button" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Byggja fjós (5.000.000 kr.)"
+
+[node name="CowCapacityLabel" type="Label" parent="UI/FieldPanel/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Kúapláss: 0 / 20"
